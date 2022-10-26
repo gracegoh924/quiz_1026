@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from articles.models import Article
@@ -19,5 +20,5 @@ def index(request):
             return Response(serializer.data) # 완성된 데이터를 보내준다.
         else:
             print(serializer.errors)
-            return Response(serializer.errors) 
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
             # 개발 단계에선 편리하지만 front에 표시하는 건 보안상 좋지 않다.
