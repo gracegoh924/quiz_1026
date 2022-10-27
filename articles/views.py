@@ -1,48 +1,49 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from rest_framework.views import APIView # 추기
 from rest_framework.generics import get_object_or_404
 from articles.models import Article
-from articles.serializers import ArticleSerializer # 추가
+from articles.serializers import ArticleSerializer
+from drf_yasg.utils import swagger_auto_schema
 
-# Create your views here.
-@api_view(['GET', 'POST'])
-def articleAPI(request):
-    if request.method == 'GET':
+
+
+
+# 클래스형 뷰
+class ArticleList(APIView):
+    def get(self, request, format=None):
         articles = Article.objects.all()
         serializer = ArticleSerializer(articles, many=True)
         return Response(serializer.data)
-    elif request.method == 'POST': # 디시리얼라이즈
+
+    @swagger_auto_schema(request_body=ArticleSerializer)
+    def post(self, request, format=None):
         serializer = ArticleSerializer(data = request.data) 
         if serializer.is_valid():
             serializer.save() 
-            # print(serializer.data)
-            # print(request.data['title'])
-            return Response(serializer.data, status=status.HTTP_201_CREATED) # 완성된 데이터를 보내준다.
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
-            # 개발 단계에선 편리하지만 front에 표시하는 건 보안상 좋지 않다.
 
-@api_view(['GET', 'PUT', 'DELETE'])
-def articleDetailAPI(request, article_id):
-    if request.method == 'GET':
-        # return Response(article) 이렇게는 할 수 없고
-        # article = Article.objects.get(id=article_id) # 1004를 저장
+
+class ArticleDetail(APIView):
+    def get(self, request, article_id, format=None):
         article = get_object_or_404(Article, id=article_id)
         serializer = ArticleSerializer(article)
         return Response(serializer.data)
-    elif request.method == 'PUT':
-        # 위 상세페이지처럼, 복사해서 가져와서 수정을 해줘야 한다.
+
+    def put(self, request, article_id, format=None):
         article = get_object_or_404(Article, id=article_id)
         serializer = ArticleSerializer(article, data=request.data) 
-        # (원래data:읽기, 나중에들어온data) 앞의data를 뒤data로 바꾸어주는 것.
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-    elif request.method == 'DELETE':
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, article_id, format=None):
         article = get_object_or_404(Article, id=article_id)
         article.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-

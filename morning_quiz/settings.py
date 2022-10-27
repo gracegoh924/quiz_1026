@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'articles',
     'morning_quiz',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
